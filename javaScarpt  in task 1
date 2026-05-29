@@ -12,3 +12,60 @@ const ProjectSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Project', ProjectSchema);
+
+// java second 
+
+// routes/projectRoutes.js
+const express = require('express');
+const router = express.Router();
+const Project = require('../models/Project');
+
+// GET API: Fetch all projects to display on the portfolio
+router.get('/api/projects', async (req, res) => {
+    try {
+        const projects = await Project.find().sort({ createdAt: -1 });
+        res.json(projects);
+    } catch (err) {
+        res.status(500).json({ message: "Server error fetching projects", error: err });
+    }
+});
+
+module.exports = router;
+// src/components/Projects.jsx
+import React, { useState, useEffect } from 'react';
+
+export default function Projects() {
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch data from your backend API
+        fetch('https://your-portfolio-backend.onrender.com/api/projects')
+            .then(res => res.json())
+            .then(data => {
+                setProjects(data);
+                setLoading(false);
+            })
+            .catch(err => console.error("Error loading projects:", err));
+    }, []);
+
+    if (loading) return <div className="spinner">Loading brilliant work...</div>;
+
+    return (
+        <section id="projects" className="projects-grid">
+            {projects.map(project => (
+                <div key={project._id} className="project-card">
+                    <h3>{project.title}</h3>
+                    <p>{project.description}</p>
+                    <div className="tags">
+                        {project.technologies.map(tech => <span key={tech}>{tech}</span>)}
+                    </div>
+                    <div className="links">
+                        <a href={project.githubLink} target="_blank" rel="noreferrer">GitHub</a>
+                        <a href={project.liveLink} target="_blank" rel="noreferrer">Live Demo</a>
+                    </div>
+                </div>
+            ))}
+        </section>
+    );
+}
